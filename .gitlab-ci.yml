@@ -1,0 +1,46 @@
+stages:
+  - testing # Запуск тестов
+  - reports # Генерация отчета
+  - deploy # Публикация отчета на gitlab pages
+
+docker_job: # Название job
+  stage: testing # Первый stage, который нужно выполнить
+  tags:
+    - docker # С помощью этого тега gitlab поймет, какой раннер нужно запустить. Он запустит докер контейнер, из образа, который мы указывали в 6 шаге регистрации раннера.
+  image: python:3.8
+  before_script:
+    - pip install -r requirements.txt # Устанавливаем пакеты в поднятом контейнере перед запуском самих тестов
+  script:
+    - pytest --alluredir=./allure-results tests/api_test.py # Укажем папку для результатов тестов через --alluredir=
+  allow_failure: true # Это позволит нам продолжить выполнение пайплайна в случае, если тесты упали.
+  artifacts: # Сущность, с помощью которой, мы сохраним результат тестирования.
+    when: always # Сохранять всегда
+    paths:
+      - ./allure-results # Здесь будет сохранен отчет
+    expire_in: 1 day # Да, он будет удален через день. Нет смысла хранить его в течение длительного срока.
+
+allure_job: # Название job
+  stage: reports # Третий stage, который будет выполнен
+  tags:
+    - docker # Пользуемся тем же самым раннером
+  image: frankescobar/allure-docker-service # Указываем раннеру использовать образ с allure. В нем мы будем генерировать отчет.
+  script:
+     - allure generate -c ./allure-results -o ./allure-report # Генерируем отчет из ./allure-results внутрь папки ./allure-report
+  artifacts:
+    paths:
+      - ./allure-results # Примонтируем две этих директории для получения результатов тестирования и генерации отчетов соответственно
+      - ./allure-report
+    expire_in: 1 day
+  rules:
+    - when: always
+
+pages: # Названием этой job говорим гитлабу, чтобы захостил результат у себя в pages
+  stage: deploy # Четвертый stage, который будет выполнен
+  script:
+    - mkdir public # Создаем папку public. По умолчанию гитлаб хостит в gitlab pages только из папки public
+    - mv ./allure-report/* public # Перемещаем в папку public сгенерированный отчет.
+  artifacts:
+    paths:
+      - public
+  rules:
+    - when: always

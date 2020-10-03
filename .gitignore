@@ -1,0 +1,8 @@
+.idea
+config.py
+run.bat
+__pycache__/
+.env
+allure
+tests/allure-results
+supro_env
