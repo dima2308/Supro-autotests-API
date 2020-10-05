@@ -5,7 +5,7 @@ import allure
 from utils import *
 
 
-@pytest.mark.important
+@pytest.mark.positive
 @allure.epic('API методы')
 @allure.story('Успешные запросы')
 class TestSuccessRequests:
@@ -29,12 +29,12 @@ class TestSuccessRequests:
         case_id = 757415
         res = client.get_active_banners()
         res_data = json.loads(res.text)
-        
-        type_data = type(res_data['data']) 
+
+        type_data = type(res_data['data'])
         params = get_banners_list(res_data['data'])
 
         assert type_data == list and all(params)
-    
+
     @allure.title('Получение списка независимых предложений')
     @allure.testcase('https://qa-tr.it.orglot.office/testrail/index.php?/cases/view/756194')
     def test_get_independent_offers(self, client):
@@ -42,7 +42,7 @@ class TestSuccessRequests:
         req_data = {
             'terminal_id': 1,
             'user_id': 1
-            }
+        }
 
         res = client.get_independent_offers(req_data)
         res_data = json.loads(res.text)
@@ -53,7 +53,7 @@ class TestSuccessRequests:
     @allure.title('Получение списка зависимых предложений')
     @allure.testcase('https://qa-tr.it.orglot.office/testrail/index.php?/cases/view/756192')
     @pytest.mark.parametrize('games_id', [
-        ['7103', '71035'], 
+        ['7103', '71035'],
         pytest.param(['71032', '71035'], marks=pytest.mark.xfail)],
         ids=["Offers", "No offers"])
     def test_get_dependent_offers(self, client, games_id):
@@ -62,8 +62,8 @@ class TestSuccessRequests:
             'terminal_id': 1,
             'user_id': 1,
             'basket': games_id
-            }
-            
+        }
+
         res = client.get_dependent_offers(data)
         res_data = json.loads(res.text)
 
@@ -72,7 +72,7 @@ class TestSuccessRequests:
             test_results.append(res_data['data'][games_id[i]] != [])
 
         assert any(test_results) and res.status_code == 200
-  
+
     @allure.title('Регистрация продажи билета')
     @allure.testcase('https://qa-tr.it.orglot.office/testrail/index.php?/cases/view/801518')
     def test_register_sale(self, client):
@@ -81,14 +81,26 @@ class TestSuccessRequests:
             'terminal_id': 1000000000,
             'user_id': 10000000,
             'data': 'Jl+rsdjEMGg='
-            }
+        }
 
         res = client.register_sale(data)
         res_data = json.loads(res.text)
 
         assert res.status_code == 200 and res_data["result"] == "OK"
 
-        
+    @allure.title('Получение списка персональных предложений')
+    def test_get_personal_offers(self, client):
+        data = {
+            'terminal_id': 1000000000,
+            'user_id': 10000000,
+            'phone': 79999999998
+        }
+
+        res = client.get_personal_offers(data)
+        res_data = json.loads(res.text)
+
+        assert res.status_code == 200 and res_data["result"] == "OK"
+
 
 @allure.epic('API методы')
 @allure.story('Неуспешные запросы')
@@ -103,7 +115,7 @@ class TestUnsuccessRequests:
             'terminal_id': 1,
             'user_id': 1,
             'basket': []
-            }
+        }
         res = client.get_dependent_offers(data)
 
         assert res.status_code == 400
@@ -115,9 +127,9 @@ class TestUnsuccessRequests:
         data = {
             'terminal_id': 1,
             'basket': [2]
-            }
+        }
         res = client.get_dependent_offers(data)
-        
+
         assert res.status_code == 400
 
     @allure.title('Запрос на получение независимых предложений с невалидным параметром')
@@ -127,19 +139,32 @@ class TestUnsuccessRequests:
         data = {
             'terminal_id': -1,
             'user_id': 1
-            }
+        }
         res = client.get_independent_offers(data)
-        
+
         assert res.status_code == 400
 
     @allure.title('Запрос на получение независимых предложений с пустым параметром')
     @allure.testcase('https://qa-tr.it.orglot.office/testrail/index.php?/cases/view/757413')
     def test_get_independent_offers_with_empty_param(self, client):
         case_id = 757413
-        data = { 
+        data = {
             "terminal_id": -1,
-             "user_id": ''
-            }
+            "user_id": ''
+        }
         res = client.get_independent_offers(data)
-        
+
+        assert res.status_code == 400
+
+    @allure.title('Запрос на получение персональных предложений с некорректным номером телефона')
+    def test_get_personal_offers_with_invalid_phone(self, client):
+        data = {
+            'terminal_id': 1000000000,
+            'user_id': 10000000,
+            'phone': 799999999981
+        }
+
+        res = client.get_personal_offers(data)
+        res_data = json.loads(res.text)
+
         assert res.status_code == 400

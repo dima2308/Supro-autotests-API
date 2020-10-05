@@ -22,3 +22,6 @@ class Client:
 
     def register_sale(self, data: dict):
         return self._s.post(self.host + "/register-sale", json=data)
+
+    def get_personal_offers(self, data: dict):
+        return self._s.post(self.host + "/get-personal-offers", json=data)

@@ -1,7 +1,8 @@
 .idea
-run.bat
-__pycache__/
 .env
+__pycache__/
+.pytest_cache
+run.bat
 allure
 tests/allure-results
 supro_env
