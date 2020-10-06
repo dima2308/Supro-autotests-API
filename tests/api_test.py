@@ -68,7 +68,8 @@ class TestSuccessRequests:
         res_data = json.loads(res.text)
 
         test_results = []
-        for i in range(len(res_data['data'])):
+
+        for i, val in enumerate(res_data):
             test_results.append(res_data['data'][games_id[i]] != [])
 
         assert any(test_results) and res.status_code == 200
@@ -116,6 +117,7 @@ class TestUnsuccessRequests:
             'user_id': 1,
             'basket': []
         }
+
         res = client.get_dependent_offers(data)
 
         assert res.status_code == 400
@@ -128,6 +130,7 @@ class TestUnsuccessRequests:
             'terminal_id': 1,
             'basket': [2]
         }
+
         res = client.get_dependent_offers(data)
 
         assert res.status_code == 400
@@ -140,6 +143,7 @@ class TestUnsuccessRequests:
             'terminal_id': -1,
             'user_id': 1
         }
+
         res = client.get_independent_offers(data)
 
         assert res.status_code == 400
@@ -152,6 +156,7 @@ class TestUnsuccessRequests:
             "terminal_id": -1,
             "user_id": ''
         }
+
         res = client.get_independent_offers(data)
 
         assert res.status_code == 400
@@ -165,6 +170,5 @@ class TestUnsuccessRequests:
         }
 
         res = client.get_personal_offers(data)
-        res_data = json.loads(res.text)
 
         assert res.status_code == 400
