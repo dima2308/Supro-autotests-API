@@ -5,4 +5,4 @@ results_codes: Dict[str, int] = {
     'blocked': 2,
     'retest': 4,
     'failed': 5
-    }
+}
